@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<module>
+	<name>prestaseeder</name>
+	<displayName><![CDATA[Prestashop Seeder]]></displayName>
+	<version><![CDATA[1.0.0]]></version>
+	<description><![CDATA[Module for prestashop that will generate dummy products and categories, so you could develop modules with ease.]]></description>
+	<author><![CDATA[Aironas Stunžėnas]]></author>
+	<tab><![CDATA[others]]></tab>
+	<is_configurable>1</is_configurable>
+	<need_instance>1</need_instance>
+</module>
