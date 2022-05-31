@@ -12,6 +12,7 @@ class PrestaSeeder extends Module
     dictumst. Morbi rutrum rutrum neque, ac ullamcorper nisi malesuada id. Sed porttitor arcu
     sed interdum ultricies. Nullam luctus facilisis felis at condimentum.
     Vestibulum hendrerit malesuada pulvinar.';
+    const IMG_IMPORT_URL = 'https://random.imagecdn.app/500/500';
 
     public function __construct()
     {
@@ -68,12 +69,11 @@ class PrestaSeeder extends Module
         return true;
     }
 
-    public function processCron($action = '')
+    public function processCron($action = '', $amount)
     {
         switch ($action) {
             case 'createProducts':
-                $this->getPictures();
-                $this->createProduct();
+                $this->createProduct($amount);
                 break;
         }
     }
@@ -202,34 +202,6 @@ class PrestaSeeder extends Module
         return true;
     }
 
-    private function getPictures()
-    {
-        if (!file_exists(_PS_MODULE_DIR_.$this->name.'/views/img/products')) {
-            mkdir(_PS_MODULE_DIR_.$this->name.'/views/img/products');
-            dump('"products" folder was created');
-        } else {
-            dump('"products" folder already exists');
-        }
-
-        $url = 'https://random.imagecdn.app/500/500';
-
-        for($counter = 1; $counter <= 10; $counter++) {
-            $img = _PS_MODULE_DIR_.$this->name.'/views/img/products/'.(int) $counter.'.jpg';
-            file_put_contents($img, file_get_contents($url));
-        }
-        dump('Done downloading pictures.');
-    }
-
-    private function getPictureLink($imageNumber)
-    {
-        if (!file_exists(_PS_MODULE_DIR_.$this->name.'/views/img/products/'.(int) $imageNumber.'.jpg')) {
-            dump('Picture was not found. '.$imageNumber.'.jpg');
-            return false;
-        }
-        dump('Picture was found. '.$imageNumber.'.jpg');
-        return _PS_MODULE_DIR_.$this->name.'/views/img/products'.(int) $imageNumber.'.jpg';
-    }
-
     private function getRandomEan()
     {
         return substr(str_shuffle("0123456789123"), 0, 13);
@@ -247,21 +219,19 @@ class PrestaSeeder extends Module
 
     private function getRandomReference()
     {
-
         $start_letter = str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ');
         $number = str_shuffle('0123456789');
         $letter = str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ');
 
         return substr(($start_letter), 0, 1).substr(($number), 0, 8).
             '-'.substr(($letter), 0, 1);
-
     }
 
-    private function createProduct()
+    private function createProduct($amount)
     {
         $idLang = $this->context->language->id;
 
-        for($counter = 1; $counter <= 10; $counter++) {
+        for($counter = 1; $counter <= (int) $amount; $counter++) {
             $productObj = new Product(null, false, $idLang);
             $productObj->ean13 = $this->getRandomEan();
             $productObj->reference = $this->getRandomReference();
@@ -277,12 +247,24 @@ class PrestaSeeder extends Module
             $productObj->meta_description = '';
             $productObj->add();
             StockAvailable::setQuantity($productObj->id, null, $this->getRandomQty());
-            $this->addPicture($productObj->id, null, $this->getPictureLink($counter));
+
+            $shops = Shop::getShops(true, null, true);
+            $image = new Image();
+            $image->id_product = $productObj->id;
+            $image->position = Image::getHighestPosition($productObj->id) + 1;
+            $image->cover = true;
+            if (($image->validateFields(false, true)) === true && ($image->validateFieldsLang(false, true)) === true && $image->add()) {
+                $image->associateTo($shops);
+                if (!$this->addPicture($productObj->id, $image->id, self::IMG_IMPORT_URL)) {
+                    $image->delete();
+                }
+            }
         }
     }
     
     private function addPicture($idProduct, $idImage = null, $imgPath)
     {
+
             $tmpFile = tempnam(_PS_TMP_IMG_DIR_, 'ps_import');
             $watermarkTypes = explode(',', Configuration::get('WATERMARK_TYPES'));
             $imageObj = new Image((int)$idImage);
@@ -290,6 +272,7 @@ class PrestaSeeder extends Module
             $imgPath = str_replace(' ', '%20', trim($imgPath));
             // Evaluate the memory required to resize the image: if it's too big we can't resize it.
             if (!ImageManager::checkImageMemoryLimit($imgPath)) {
+                dump('Too big, return', $imgPath);
                 return false;
             }
             if (@copy($imgPath, $tmpFile)) {
