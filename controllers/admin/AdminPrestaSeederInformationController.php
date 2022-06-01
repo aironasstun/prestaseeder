@@ -14,7 +14,6 @@ class AdminPrestaSeederInformationController extends ModuleAdminController
         parent::__construct();
         $this->content .= $this->module->getMenu();
         $this->content .= $this->renderView();
-
     }
 
     public function renderView()

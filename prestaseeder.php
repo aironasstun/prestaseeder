@@ -4,6 +4,8 @@ class PrestaSeeder extends Module
 {
 
     const CONTROLLER_INFO = 'AdminPrestaSeederInformation';
+    const CONTROLLER_SETTINGS = 'AdminPrestaSeederSettings';
+
     const LOREM_IPSUM = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.
     Ut fringilla nunc eu libero finibus interdum. Phasellus commodo vehicula mauris in hendrerit.
     Cras placerat eu justo ac mollis. Donec nec ipsum sagittis, condimentum dolor vel, luctus ante.
@@ -37,6 +39,8 @@ class PrestaSeeder extends Module
 
     public function install()
     {
+        Configuration::updateValue('SEEDER_IMG_URL', 'https://random.imagecdn.app/500/500');
+
         if (!parent::install()) {
             $this->_errors[] = $this->l('Could not install module');
 
@@ -54,6 +58,8 @@ class PrestaSeeder extends Module
 
     public function uninstall()
     {
+        Configuration::deleteByName('SEEDER_IMG_URL');
+
         if (!$this->deleteModuleTabs()) {
             $this->_errors[] = $this->l('Could not delete module admin controllers');
 
@@ -94,6 +100,12 @@ class PrestaSeeder extends Module
                 'url' => $this->context->link->getAdminLink(self::CONTROLLER_INFO),
                 'title' => $this->l('Information'),
                 'current' => self::CONTROLLER_INFO == $currentController,
+                'icon' => 'icon icon-cogs'
+            ),
+            array(
+                'url' => $this->context->link->getAdminLink(self::CONTROLLER_SETTINGS),
+                'title' => $this->l('Settings'),
+                'current' => self::CONTROLLER_SETTINGS == $currentController,
                 'icon' => 'icon icon-cogs'
             ),
         );
@@ -139,6 +151,8 @@ class PrestaSeeder extends Module
     {
         return array(
             self::CONTROLLER_INFO => $this->l('Information'),
+            self::CONTROLLER_SETTINGS => $this->l('Settings'),
+
         );
     }
 
