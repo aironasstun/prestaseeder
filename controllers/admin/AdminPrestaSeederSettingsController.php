@@ -19,6 +19,8 @@ class AdminPrestaSeederSettingsController extends ModuleAdminController
 
     public function initOptions()
     {
+        $taxRates = TaxRulesGroup::getTaxRulesGroups();
+
         $this->fields_options = array(
             'general' => array(
                 'title' => $this->l('Parameters'),
@@ -28,8 +30,17 @@ class AdminPrestaSeederSettingsController extends ModuleAdminController
                         'desc' => $this->l('Enter your random image api here'),
                         'type' => 'text'
                     ),
-                )
-            )
+                    'SEEDER_DEFAULT_TAX' => array(
+                        'title' => $this->l('Default Tax Rule'),
+                        'desc' => $this->l('Pick default tax rule that will be used while seeding'),
+                        'type' => 'select',
+                        'identifier' => 'id_tax_rules_group',
+                        'list' => $taxRates,
+                    ),
+                ),
+                'submit' => array('title' => $this->l('Save'),
+                ),
+            ),
         );
     }
 

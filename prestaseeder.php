@@ -14,7 +14,7 @@ class PrestaSeeder extends Module
     dictumst. Morbi rutrum rutrum neque, ac ullamcorper nisi malesuada id. Sed porttitor arcu
     sed interdum ultricies. Nullam luctus facilisis felis at condimentum.
     Vestibulum hendrerit malesuada pulvinar.';
-    const IMG_IMPORT_URL = 'https://random.imagecdn.app/500/500';
+    const DEFAULT_IMG_IMPORT_URL = 'https://random.imagecdn.app/500/500';
 
     public function __construct()
     {
@@ -247,6 +247,8 @@ class PrestaSeeder extends Module
         $shops = Shop::getShops(true, null, true);
         $rootCategory = Configuration::get('PS_ROOT_CATEGORY');
 
+        $imageLink = (Configuration::get('SEEDER_IMG_URL')) ? Configuration::get('SEEDER_IMG_URL') : self::DEFAULT_IMG_IMPORT_URL;
+
         for($counter = 1; $counter <= (int) $amount; $counter++) {
             $productObj = new Product(null, false, $idLang);
             $productObj->ean13 = $this->getRandomEan();
@@ -273,7 +275,7 @@ class PrestaSeeder extends Module
             $image->cover = true;
             if (($image->validateFields(false, true)) === true && ($image->validateFieldsLang(false, true)) === true && $image->add()) {
                 $image->associateTo($shops);
-                if (!$this->addPicture($productObj->id, $image->id, self::IMG_IMPORT_URL)) {
+                if (!$this->addPicture($productObj->id, $image->id, $imageLink)) {
                     $image->delete();
                 }
             }
