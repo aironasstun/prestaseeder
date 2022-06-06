@@ -237,6 +237,19 @@ class PrestaSeeder extends Module
         $number = str_shuffle('0123456789');
         $letter = str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ');
 
+        $reference = substr(($start_letter), 0, 1).substr(($number), 0, 8).
+            '-'.substr(($letter), 0, 1);
+
+        $res = Db::getInstance()->getValue('SELECT `id_product`
+        FROM `'._DB_PREFIX_.'product`
+        WHERE `reference` = '.pSQL($reference));
+
+        if ($res) {
+            $this->getRandomReference();
+            // How good of an idea is this?
+            // Maybe we can create another function for that and call the previous one if it's true ?
+        }
+
         return substr(($start_letter), 0, 1).substr(($number), 0, 8).
             '-'.substr(($letter), 0, 1);
     }
@@ -245,28 +258,35 @@ class PrestaSeeder extends Module
     {
         $idLang = $this->context->language->id;
         $shops = Shop::getShops(true, null, true);
+        $defaultTaxRuleGroup = Configuration::get('SEEDER_DEFAULT_TAX');
         $rootCategory = Configuration::get('PS_ROOT_CATEGORY');
-
+        $homeCategory = Configuration::get('PS_HOME_CATEGORY');
         $imageLink = (Configuration::get('SEEDER_IMG_URL')) ? Configuration::get('SEEDER_IMG_URL') : self::DEFAULT_IMG_IMPORT_URL;
 
         for($counter = 1; $counter <= (int) $amount; $counter++) {
+
+            $name = 'Test product '.(int) $counter;
+
             $productObj = new Product(null, false, $idLang);
             $productObj->ean13 = $this->getRandomEan();
             $productObj->reference = $this->getRandomReference();
-            $productObj->name = 'Test product '.(int) $counter;
+            $productObj->name = $name;
             $productObj->description = self::LOREM_IPSUM;
             $productObj->id_category_default = $rootCategory;
             $productObj->redirect_type = '301';
-            $productObj->price = number_format($this->getRandomPrice(), 6, '.', '');
+            $productObj->price = $this->getRandomPrice();
             $productObj->minimal_quantity = 1;
             $productObj->show_price = 1;
             $productObj->on_sale = 0;
             $productObj->online_only = 0;
             $productObj->meta_description = '';
+            $productObj->id_tax_rules_group = (int) $defaultTaxRuleGroup;
+            $productObj->link_rewrite = Tools::str2url($name);
             if (!$productObj->add()) {
                 continue;
             }
 
+            $productObj->addToCategories(array($homeCategory));
             StockAvailable::setQuantity($productObj->id, null, $this->getRandomQty());
 
             $image = new Image();
