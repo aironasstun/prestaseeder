@@ -80,6 +80,7 @@ class PrestaSeeder extends Module
         switch ($action) {
             case 'createProducts':
                 $this->createProduct($amount);
+//                Tools::redirectAdmin($this->context->link->getAdminLink(self::CONTROLLER_INFO));
                 break;
         }
     }
@@ -240,14 +241,12 @@ class PrestaSeeder extends Module
         $reference = substr(($start_letter), 0, 1).substr(($number), 0, 8).
             '-'.substr(($letter), 0, 1);
 
-        $res = Db::getInstance()->getValue('SELECT `id_product`
+        $response = Db::getInstance()->getValue('SELECT `id_product`
         FROM `'._DB_PREFIX_.'product`
         WHERE `reference` = '.pSQL($reference));
 
-        if ($res) {
+        if ($response) {
             $this->getRandomReference();
-            // How good of an idea is this?
-            // Maybe we can create another function for that and call the previous one if it's true ?
         }
 
         return substr(($start_letter), 0, 1).substr(($number), 0, 8).

@@ -19,6 +19,12 @@ class AdminPrestaSeederInformationController extends ModuleAdminController
     public function renderView()
     {
         $tpl = $this->context->smarty->createTemplate(_PS_MODULE_DIR_.'prestaseeder/views/templates/admin/information.tpl');
+        $tpl->assign(
+            array(
+                'cronPath' => _PS_BASE_URL_.'/modules/prestaseeder/prestaseeder.cron.php'
+            )
+        );
+
 
         return $tpl->fetch();
     }
