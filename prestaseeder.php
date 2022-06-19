@@ -6,16 +6,6 @@ class PrestaSeeder extends Module
     const CONTROLLER_INFO = 'AdminPrestaSeederInformation';
     const CONTROLLER_SETTINGS = 'AdminPrestaSeederSettings';
 
-    const LOREM_IPSUM = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-    Ut fringilla nunc eu libero finibus interdum. Phasellus commodo vehicula mauris in hendrerit.
-    Cras placerat eu justo ac mollis. Donec nec ipsum sagittis, condimentum dolor vel, luctus ante.
-    Sed ac interdum nisl. Nulla faucibus tortor quis tellus sollicitudin, ac efficitur nibh
-    facilisis. Nulla semper ligula placerat ipsum dictum eleifend. In hac habitasse platea
-    dictumst. Morbi rutrum rutrum neque, ac ullamcorper nisi malesuada id. Sed porttitor arcu
-    sed interdum ultricies. Nullam luctus facilisis felis at condimentum.
-    Vestibulum hendrerit malesuada pulvinar.';
-    const DEFAULT_IMG_IMPORT_URL = 'https://random.imagecdn.app/500/500';
-
     public function __construct()
     {
         $this->name = 'prestaseeder';
@@ -35,6 +25,7 @@ class PrestaSeeder extends Module
         $this->description = $this->l('Module for prestashop that will generate dummy products, so you could develop modules with ease.');
 
         $this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
+        $this->loadFiles();
     }
 
     public function install()
@@ -49,6 +40,12 @@ class PrestaSeeder extends Module
 
         if (!$this->registerModuleTabs()) {
             $this->_errors[] = $this->l('Could not register module admin controllers');
+
+            return false;
+        }
+
+        if (!$this->createModuleDatabaseTables()) {
+            $this->_errors[] = $this->l('Could not create module database tables');
 
             return false;
         }
@@ -79,8 +76,8 @@ class PrestaSeeder extends Module
     {
         switch ($action) {
             case 'createProducts':
-                $this->createProduct($amount);
-//                Tools::redirectAdmin($this->context->link->getAdminLink(self::CONTROLLER_INFO));
+                $productSeederObj = new PrestaSeederProduct();
+                $productSeederObj->createProduct($amount);
                 break;
         }
     }
@@ -114,6 +111,28 @@ class PrestaSeeder extends Module
         $this->context->smarty->assign('menu', $menu);
 
         return $this->context->smarty->fetch(_PS_MODULE_DIR_.$this->name.'/views/templates/admin/menu.tpl');
+    }
+
+    private function createModuleDatabaseTables()
+    {
+        $sql = array();
+
+        $sql[] = '
+            CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'seeder_product` (
+                `id_seeder_product` INT(11) NOT NULL AUTO_INCREMENT,
+                `id_product` INT(11) NOT NULL,
+                `date_add` DATETIME NOT NULL,
+                `date_upd` DATETIME NOT NULL,
+            PRIMARY KEY (`id_seeder_product`)
+            ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;';
+
+        foreach ($sql as $query) {
+            if (!Db::getInstance()->execute($query)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private function registerModuleHooks()
@@ -182,7 +201,6 @@ class PrestaSeeder extends Module
         return (bool)$tab->id;
     }
 
-
     private function deleteModuleTabs()
     {
         $tabs = $this->getModuleTabs();
@@ -202,9 +220,8 @@ class PrestaSeeder extends Module
 
     private function deleteModuleTab($controller)
     {
-        $tabRepository = $this->get('prestashop.core.admin.tab.repository');
-        $idTab = $tabRepository->findOneIdByClassName($controller);
-        $tab = new Tab((int)$idTab);
+        $idTab = (int) Tab::getIdFromClassName($controller);
+        $tab = new Tab((int) $idTab);
 
         if (!Validate::isLoadedObject($tab)) {
             return true;
@@ -217,115 +234,14 @@ class PrestaSeeder extends Module
         return true;
     }
 
-    private function getRandomEan()
+    private function loadFiles()
     {
-        return substr(str_shuffle("0123456789123"), 0, 13);
-    }
+        $classes = glob(_PS_MODULE_DIR_.$this->name.'/classes/*.php');
 
-    private function getRandomPrice()
-    {
-        return number_format(((float) rand(47, 630) / 10), 6, '.', '');
-    }
-
-    private function getRandomQty()
-    {
-        return (int) rand(1, 971);
-    }
-
-    private function getRandomReference()
-    {
-        $start_letter = str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ');
-        $number = str_shuffle('0123456789');
-        $letter = str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ');
-
-        $reference = substr(($start_letter), 0, 1).substr(($number), 0, 8).
-            '-'.substr(($letter), 0, 1);
-
-        $response = Db::getInstance()->getValue('SELECT `id_product`
-        FROM `'._DB_PREFIX_.'product`
-        WHERE `reference` = '.pSQL($reference));
-
-        if ($response) {
-            $this->getRandomReference();
-        }
-
-        return substr(($start_letter), 0, 1).substr(($number), 0, 8).
-            '-'.substr(($letter), 0, 1);
-    }
-
-    private function createProduct($amount)
-    {
-        $idLang = $this->context->language->id;
-        $shops = Shop::getShops(true, null, true);
-        $defaultTaxRuleGroup = Configuration::get('SEEDER_DEFAULT_TAX');
-        $rootCategory = Configuration::get('PS_ROOT_CATEGORY');
-        $homeCategory = Configuration::get('PS_HOME_CATEGORY');
-        $imageLink = (Configuration::get('SEEDER_IMG_URL')) ? Configuration::get('SEEDER_IMG_URL') : self::DEFAULT_IMG_IMPORT_URL;
-
-        for($counter = 1; $counter <= (int) $amount; $counter++) {
-
-            $name = 'Test product '.(int) $counter;
-
-            $productObj = new Product(null, false, $idLang);
-            $productObj->ean13 = $this->getRandomEan();
-            $productObj->reference = $this->getRandomReference();
-            $productObj->name = $name;
-            $productObj->description = self::LOREM_IPSUM;
-            $productObj->id_category_default = $rootCategory;
-            $productObj->redirect_type = '301';
-            $productObj->price = $this->getRandomPrice();
-            $productObj->minimal_quantity = 1;
-            $productObj->show_price = 1;
-            $productObj->on_sale = 0;
-            $productObj->online_only = 0;
-            $productObj->meta_description = '';
-            $productObj->id_tax_rules_group = (int) $defaultTaxRuleGroup;
-            $productObj->link_rewrite = Tools::str2url($name);
-            if (!$productObj->add()) {
-                continue;
-            }
-
-            $productObj->addToCategories(array($homeCategory));
-            StockAvailable::setQuantity($productObj->id, null, $this->getRandomQty());
-
-            $image = new Image();
-            $image->id_product = $productObj->id;
-            $image->position = Image::getHighestPosition($productObj->id) + 1;
-            $image->cover = true;
-            if (($image->validateFields(false, true)) === true && ($image->validateFieldsLang(false, true)) === true && $image->add()) {
-                $image->associateTo($shops);
-                if (!$this->addPicture($productObj->id, $image->id, $imageLink)) {
-                    $image->delete();
-                }
+        foreach ($classes as $class) {
+            if ($class != _PS_MODULE_DIR_.$this->name.'/classes/index.php') {
+                require_once($class);
             }
         }
-    }
-    
-    private function addPicture($idProduct, $idImage = null, $imgPath)
-    {
-            $tmpFile = tempnam(_PS_TMP_IMG_DIR_, 'ps_import');
-            $watermarkTypes = explode(',', Configuration::get('WATERMARK_TYPES'));
-            $imageObj = new Image((int)$idImage);
-            $path = $imageObj->getPathForCreation();
-            $imgPath = str_replace(' ', '%20', trim($imgPath));
-            // Evaluate the memory required to resize the image: if it's too big we can't resize it.
-            if (!ImageManager::checkImageMemoryLimit($imgPath)) {
-                return false;
-            }
-            if (@copy($imgPath, $tmpFile)) {
-                ImageManager::resize($tmpFile, $path . '.jpg');
-                $imagesTypes = ImageType::getImagesTypes('products');
-                foreach ($imagesTypes as $imageType) {
-                    ImageManager::resize($tmpFile, $path . '-' . stripslashes($imageType['name']) . '.jpg', $imageType['width'], $imageType['height']);
-                    if (in_array($imageType['id_image_type'], $watermarkTypes)) {
-                        Hook::exec('actionWatermark', array('id_image' => $idImage, 'id_product' => $idProduct));
-                    }
-                }
-            } else {
-                unlink($tmpFile);
-                return false;
-            }
-            unlink($tmpFile);
-            return true;
     }
 }

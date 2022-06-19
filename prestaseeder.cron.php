@@ -14,7 +14,7 @@ if (!Module::isEnabled('prestaseeder')) {
     exit;
 }
 
-/** @var ITeam $moduleInstance */
+/** @var PrestaSeeder $moduleInstance */
 $moduleInstance = Module::getInstanceByName('prestaseeder');
 $moduleInstance->processCron($action, $amount);
 exit;
