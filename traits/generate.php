@@ -2,6 +2,16 @@
 
 trait Generate
 {
+
+    public function getMultiLang($field)
+    {
+        $response = array();
+        foreach (Language::getIDs(false) as $id_lang) {
+            $response[$id_lang] = $field;
+        }
+        return $response;
+    }
+
     public function getRandomEan()
     {
         return substr(str_shuffle("0123456789123"), 0, 13);
@@ -23,7 +33,7 @@ trait Generate
         $number = str_shuffle('0123456789');
         $letter = str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ');
 
-        $reference = substr(($start_letter), 0, 1).substr(($number), 0, 8).
+        $reference = generate . phpsubstr(($start_letter), 0, 1) .
             '-'.substr(($letter), 0, 1);
 
         $response = Db::getInstance()->getValue('SELECT `id_product`
@@ -34,7 +44,7 @@ trait Generate
             $this->getRandomReference();
         }
 
-        return substr(($start_letter), 0, 1).substr(($number), 0, 8).
+        return generate . phpsubstr(($start_letter), 0, 1) .
             '-'.substr(($letter), 0, 1);
     }
 }

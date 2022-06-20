@@ -1,5 +1,7 @@
 <?php
 
+require_once(_PS_MODULE_DIR_.$this->name.'/traits/generate.php'); // IS THIS EVEN NEEDED ?
+
 class PrestaSeederProduct extends ObjectModel
 {
     use Generate;
@@ -41,10 +43,10 @@ class PrestaSeederProduct extends ObjectModel
 
             $name = 'Test product '.(int) $counter;
 
-            $productObj = new Product(null, false, $idLang);
+            $productObj = new Product();
             $productObj->ean13 = $this->getRandomEan();
             $productObj->reference = $this->getRandomReference();
-            $productObj->name = $name;
+            $productObj->name = $this->getMultiLang($name);
             $productObj->description = self::LOREM_IPSUM;
             $productObj->id_category_default = $rootCategory;
             $productObj->redirect_type = '301';
@@ -55,10 +57,14 @@ class PrestaSeederProduct extends ObjectModel
             $productObj->online_only = 0;
             $productObj->meta_description = '';
             $productObj->id_tax_rules_group = (int) $defaultTaxRuleGroup;
-            $productObj->link_rewrite = Tools::str2url($name);
+            $productObj->link_rewrite = $this->getMultiLang(Tools::str2url($name));
             if (!$productObj->add()) {
                 continue;
             }
+
+            $seederProduct = new PrestaSeederProduct();
+            $seederProduct->id_product = $productObj->id;
+            $seederProduct->add();
 
             $productObj->addToCategories(array($homeCategory));
             StockAvailable::setQuantity($productObj->id, null, $this->getRandomQty());
@@ -73,13 +79,6 @@ class PrestaSeederProduct extends ObjectModel
                     $image->delete();
                 }
             }
-
-            $seederProduct = new PrestaSeederProduct();
-            $seederProduct->id_product = $productObj->id;
-            if (!$seederProduct->add()) {
-                continue;
-            }
-
         }
     }
 

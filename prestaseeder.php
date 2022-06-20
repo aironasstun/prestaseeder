@@ -79,6 +79,10 @@ class PrestaSeeder extends Module
                 $productSeederObj = new PrestaSeederProduct();
                 $productSeederObj->createProduct($amount);
                 break;
+            case 'createCategories':
+                $categorySeederObj = new PrestaSeederCategory();
+                $categorySeederObj->createCategory($amount);
+                break;
         }
     }
 
@@ -124,6 +128,15 @@ class PrestaSeeder extends Module
                 `date_add` DATETIME NOT NULL,
                 `date_upd` DATETIME NOT NULL,
             PRIMARY KEY (`id_seeder_product`)
+            ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;';
+
+        $sql[] = '
+            CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'seeder_category` (
+                `id_seeder_category` INT(11) NOT NULL AUTO_INCREMENT,
+                `id_category` INT(11) NOT NULL,
+                `date_add` DATETIME NOT NULL,
+                `date_upd` DATETIME NOT NULL,
+            PRIMARY KEY (`id_seeder_category`)
             ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;';
 
         foreach ($sql as $query) {
@@ -243,33 +256,5 @@ class PrestaSeeder extends Module
                 require_once($class);
             }
         }
-    }
-    
-    private function addPicture($idProduct, $idImage = null, $imgPath)
-    {
-            $tmpFile = tempnam(_PS_TMP_IMG_DIR_, 'ps_import');
-            $watermarkTypes = explode(',', Configuration::get('WATERMARK_TYPES'));
-            $imageObj = new Image((int)$idImage);
-            $path = $imageObj->getPathForCreation();
-            $imgPath = str_replace(' ', '%20', trim($imgPath));
-            // Evaluate the memory required to resize the image: if it's too big we can't resize it.
-            if (!ImageManager::checkImageMemoryLimit($imgPath)) {
-                return false;
-            }
-            if (@copy($imgPath, $tmpFile)) {
-                ImageManager::resize($tmpFile, $path . '.jpg');
-                $imagesTypes = ImageType::getImagesTypes('products');
-                foreach ($imagesTypes as $imageType) {
-                    ImageManager::resize($tmpFile, $path . '-' . stripslashes($imageType['name']) . '.jpg', $imageType['width'], $imageType['height']);
-                    if (in_array($imageType['id_image_type'], $watermarkTypes)) {
-                        Hook::exec('actionWatermark', array('id_image' => $idImage, 'id_product' => $idProduct));
-                    }
-                }
-            } else {
-                unlink($tmpFile);
-                return false;
-            }
-            unlink($tmpFile);
-            return true;
     }
 }

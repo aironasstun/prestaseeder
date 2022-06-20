@@ -12,6 +12,7 @@
                     <label for="action">Select an action: </label>
                         <select class="form-control" name="action" id="action">
                             <option value="createProducts">Create products</option>
+                            <option value="createCategories">Create categories</option>
                         </select>
                 </div>
                 <div class="form-group">
