@@ -33,7 +33,7 @@ trait Generate
         $number = str_shuffle('0123456789');
         $letter = str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ');
 
-        $reference = generate . phpsubstr(($start_letter), 0, 1) .
+        $reference = substr(($start_letter), 0, 1).substr(($number), 0, 8).
             '-'.substr(($letter), 0, 1);
 
         $response = Db::getInstance()->getValue('SELECT `id_product`
@@ -44,7 +44,42 @@ trait Generate
             $this->getRandomReference();
         }
 
-        return generate . phpsubstr(($start_letter), 0, 1) .
-            '-'.substr(($letter), 0, 1);
+        return $reference;
+    }
+
+    public function addPicture($id_entity, $id_image = null, $imgPath, $type = 'products')
+    {
+        $tmpFile = tempnam(_PS_TMP_IMG_DIR_, 'ps_import');
+        $watermarkTypes = explode(',', Configuration::get('WATERMARK_TYPES'));
+        switch ($type) {
+            default:
+            case 'products':
+                $image_obj = new Image($id_image);
+                $path = $image_obj->getPathForCreation();
+                break;
+            case 'categories':
+                $path = _PS_CAT_IMG_DIR_ . (int) $id_entity;
+                break;
+        }
+        $imgPath = str_replace(' ', '%20', trim($imgPath));
+        // Evaluate the memory required to resize the image: if it's too big we can't resize it.
+        if (!ImageManager::checkImageMemoryLimit($imgPath)) {
+            return false;
+        }
+        if (@copy($imgPath, $tmpFile)) {
+            ImageManager::resize($tmpFile, $path . '.jpg');
+            $imagesTypes = ImageType::getImagesTypes($type);
+            foreach ($imagesTypes as $imageType) {
+                ImageManager::resize($tmpFile, $path . '-' . stripslashes($imageType['name']) . '.jpg', $imageType['width'], $imageType['height']);
+                if (in_array($imageType['id_image_type'], $watermarkTypes)) {
+                    Hook::exec('actionWatermark', array('id_image' => $id_image, 'id_product' => $id_entity));
+                }
+            }
+        } else {
+            unlink($tmpFile);
+            return false;
+        }
+        unlink($tmpFile);
+        return true;
     }
 }

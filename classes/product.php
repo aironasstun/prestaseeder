@@ -81,32 +81,4 @@ class PrestaSeederProduct extends ObjectModel
             }
         }
     }
-
-    private function addPicture($idProduct, $idImage = null, $imgPath)
-    {
-        $tmpFile = tempnam(_PS_TMP_IMG_DIR_, 'ps_import');
-        $watermarkTypes = explode(',', Configuration::get('WATERMARK_TYPES'));
-        $imageObj = new Image((int)$idImage);
-        $path = $imageObj->getPathForCreation();
-        $imgPath = str_replace(' ', '%20', trim($imgPath));
-        // Evaluate the memory required to resize the image: if it's too big we can't resize it.
-        if (!ImageManager::checkImageMemoryLimit($imgPath)) {
-            return false;
-        }
-        if (@copy($imgPath, $tmpFile)) {
-            ImageManager::resize($tmpFile, $path . '.jpg');
-            $imagesTypes = ImageType::getImagesTypes('products');
-            foreach ($imagesTypes as $imageType) {
-                ImageManager::resize($tmpFile, $path . '-' . stripslashes($imageType['name']) . '.jpg', $imageType['width'], $imageType['height']);
-                if (in_array($imageType['id_image_type'], $watermarkTypes)) {
-                    Hook::exec('actionWatermark', array('id_image' => $idImage, 'id_product' => $idProduct));
-                }
-            }
-        } else {
-            unlink($tmpFile);
-            return false;
-        }
-        unlink($tmpFile);
-        return true;
-    }
 }

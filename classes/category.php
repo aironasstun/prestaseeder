@@ -51,6 +51,9 @@ class PrestaSeederCategory extends ObjectModel
             if ($categoryObj->add()) {
                 $seederCategory = new PrestaSeederCategory();
                 $seederCategory->id_category = $categoryObj->id;
+                if ($seederCategory->add()) {
+                    $this->addPicture($categoryObj->id, null, $imageLink, 'categories');
+                }
             }
         }
     }
