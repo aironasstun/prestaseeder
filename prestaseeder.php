@@ -6,6 +6,16 @@ class PrestaSeeder extends Module
     const CONTROLLER_INFO = 'AdminPrestaSeederInformation';
     const CONTROLLER_SETTINGS = 'AdminPrestaSeederSettings';
 
+    private $hooks = array(
+        'backOfficeHeader',
+        'header',
+        'actionObjectProductAddAfter',
+        'actionObjectCategoryAddAfter',
+        'actionObjectProductDeleteAfter',
+        'actionObjectCategoryDeleteAfter',
+    );
+
+
     public function __construct()
     {
         $this->name = 'prestaseeder';
@@ -38,6 +48,12 @@ class PrestaSeeder extends Module
             return false;
         }
 
+        if (!$this->registerModuleHooks()) {
+            $this->_errors[] = $this->l('Could not register module hooks');
+
+            return false;
+        }
+
         if (!$this->registerModuleTabs()) {
             $this->_errors[] = $this->l('Could not register module admin controllers');
 
@@ -59,6 +75,12 @@ class PrestaSeeder extends Module
 
         if (!$this->deleteModuleTabs()) {
             $this->_errors[] = $this->l('Could not delete module admin controllers');
+
+            return false;
+        }
+
+        if (!$this->deleteModuleDatabaseTables()) {
+            $this->_errors[] = $this->l('Could not delete module database tables');
 
             return false;
         }
@@ -117,6 +139,62 @@ class PrestaSeeder extends Module
         return $this->context->smarty->fetch(_PS_MODULE_DIR_.$this->name.'/views/templates/admin/menu.tpl');
     }
 
+    public function hookActionObjectCategoryAddAfter($params)
+    {
+        $categoryObj = $params['object'];
+        $linkRewrites = array();
+        foreach($categoryObj->name as $key => $name) {
+            $categoryObj->link_rewrite[$key] = Tools::str2url($name.' '.(int) $categoryObj->id);
+            $categoryObj->name[$key] = $name.' '.(int) $categoryObj->id;
+        }
+
+        if (!$categoryObj->update()) {
+            return false;
+        }
+    }
+
+    public function hookActionObjectProductAddAfter($params)
+    {
+        $productObj = $params['object'];
+        $linkRewrites = array();
+        foreach($productObj->name as $key => $name) {
+            $productObj->link_rewrite[$key] = Tools::str2url($name.' '.(int) $productObj->id);
+            $productObj->name[$key] = $name.' '.(int) $productObj->id;
+        }
+
+        if (!$productObj->update()) {
+            return false;
+        }
+    }
+
+    public function hookActionObjectCategoryDeleteAfter($params)
+    {
+        $categoryObj = $params['object'];
+
+        $primaryId = PrestaSeederCategory::getPrimaryById($categoryObj->id);
+        $seederCategoryObj = new PrestaSeederCategory($primaryId);
+
+        if (!Validate::isLoadedObject($seederCategoryObj)) {
+            return;
+        }
+
+        $seederCategoryObj->delete();
+    }
+
+    public function hookActionObjectProductDeleteAfter($params)
+    {
+        $productObj = $params['object'];
+
+        $primaryId = PrestaSeederProduct::getPrimaryById($productObj->id);
+        $seederProductObj = new PrestaSeederProduct($primaryId);
+
+        if (!Validate::isLoadedObject($seederProductObj)) {
+            return;
+        }
+
+        $seederProductObj->delete();
+    }
+
     private function createModuleDatabaseTables()
     {
         $sql = array();
@@ -145,6 +223,24 @@ class PrestaSeeder extends Module
             }
         }
 
+        return true;
+    }
+
+    private function deleteModuleDatabaseTables()
+    {
+        $sql = array();
+
+        $sql[] = '
+            DROP TABLE IF EXISTS
+                `'._DB_PREFIX_.'seeder_product`,
+                `'._DB_PREFIX_.'seeder_category`
+        ';
+
+        foreach ($sql as $query) {
+            if (!Db::getInstance()->execute($query)) {
+                return false;
+            }
+        }
         return true;
     }
 

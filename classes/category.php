@@ -40,7 +40,7 @@ class PrestaSeederCategory extends ObjectModel
 
         for($counter = 1; $counter <= (int) $amount; $counter++) {
 
-            $name = 'Test category '.(int) $counter;
+            $name = 'Test category';
 
             $categoryObj = new Category();
             $categoryObj->active = 1;
@@ -56,5 +56,22 @@ class PrestaSeederCategory extends ObjectModel
                 }
             }
         }
+    }
+
+    public static function getCategories()
+    {
+        return Db::getInstance()->executeS('
+        SELECT `id_seeder_category`, `id_category`
+        FROM `'._DB_PREFIX_.'seeder_category`
+        ');
+    }
+
+    public static function getPrimaryById($id_category)
+    {
+        return (int) Db::getInstance()->getValue('
+        SELECT `id_seeder_category`
+        FROM `'._DB_PREFIX_.'seeder_category`
+        WHERE `id_category` = '.(int) $id_category
+        );
     }
 }

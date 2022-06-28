@@ -41,7 +41,7 @@ class PrestaSeederProduct extends ObjectModel
 
         for($counter = 1; $counter <= (int) $amount; $counter++) {
 
-            $name = 'Test product '.(int) $counter;
+            $name = 'Test product';
 
             $productObj = new Product();
             $productObj->ean13 = $this->getRandomEan();
@@ -53,9 +53,6 @@ class PrestaSeederProduct extends ObjectModel
             $productObj->price = $this->getRandomPrice();
             $productObj->minimal_quantity = 1;
             $productObj->show_price = 1;
-            $productObj->on_sale = 0;
-            $productObj->online_only = 0;
-            $productObj->meta_description = '';
             $productObj->id_tax_rules_group = (int) $defaultTaxRuleGroup;
             $productObj->link_rewrite = $this->getMultiLang(Tools::str2url($name));
             if (!$productObj->add()) {
@@ -80,5 +77,14 @@ class PrestaSeederProduct extends ObjectModel
                 }
             }
         }
+    }
+
+    public static function getPrimaryById($id_product)
+    {
+        return (int) Db::getInstance()->getValue('
+        SELECT `id_seeder_product`
+        FROM `'._DB_PREFIX_.'seeder_product`
+        WHERE `id_product` = '.(int) $id_product
+        );
     }
 }
