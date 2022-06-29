@@ -74,4 +74,20 @@ class PrestaSeederCategory extends ObjectModel
         WHERE `id_category` = '.(int) $id_category
         );
     }
+
+    public static function getGeneratedCategoryIds()
+    {
+        $categories = (array) Db::getInstance()->executeS('
+        SELECT `id_category`
+        FROM `'._DB_PREFIX_.'seeder_category`
+        ');
+
+        $category_ids = array();
+
+        foreach($categories as $category) {
+            $category_ids[] = (int) $category['id_category'];
+        }
+
+        return $category_ids;
+    }
 }

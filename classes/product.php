@@ -87,4 +87,20 @@ class PrestaSeederProduct extends ObjectModel
         WHERE `id_product` = '.(int) $id_product
         );
     }
+
+    public static function getGeneratedProductIds()
+    {
+        $products = (array) Db::getInstance()->executeS('
+        SELECT `id_product`
+        FROM `'._DB_PREFIX_.'seeder_product`
+        ');
+
+        $product_ids = array();
+
+        foreach($products as $product) {
+            $product_ids[] = (int) $product['id_product'];
+        }
+
+        return $product_ids;
+    }
 }

@@ -13,6 +13,7 @@ class PrestaSeeder extends Module
         'actionObjectCategoryAddAfter',
         'actionObjectProductDeleteAfter',
         'actionObjectCategoryDeleteAfter',
+        'backOfficeHeader'
     );
 
 
@@ -105,6 +106,8 @@ class PrestaSeeder extends Module
                 $categorySeederObj = new PrestaSeederCategory();
                 $categorySeederObj->createCategory($amount);
                 break;
+            case 'assignToCategories':
+                $this->assignToCategories();
         }
     }
 
@@ -193,6 +196,37 @@ class PrestaSeeder extends Module
         }
 
         $seederProductObj->delete();
+    }
+
+//    public function hookBackOfficeHeader()
+//    {
+//        $this->context->controller->addJS($this->_path.'views/js/back.js');
+//    }
+
+    private function assignToCategories()
+    {
+        $productIds = PrestaSeederProduct::getGeneratedProductIds();
+        $categoryIds = PrestaSeederCategory::getGeneratedCategoryIds();
+
+        dump($productIds, $categoryIds);
+
+        $difference = count($productIds) / count($categoryIds);
+//        if (count($productIds) % count($categoryIds) != 0) {
+//            $difference++;
+//        }
+
+        $assigning = array_chunk($productIds, $difference);
+
+        $formattingArray = array();
+
+        for ($i = 0; $i <= count($categoryIds); $i++) {
+            $formattingArray[$categoryIds[$i]] = $assigning[$i];
+        }
+
+        dump($assigning,$formattingArray); die();
+
+
+
     }
 
     private function createModuleDatabaseTables()
