@@ -9,11 +9,8 @@ class PrestaSeeder extends Module
     private $hooks = array(
         'backOfficeHeader',
         'header',
-        'actionObjectProductAddAfter',
-        'actionObjectCategoryAddAfter',
         'actionObjectProductDeleteAfter',
         'actionObjectCategoryDeleteAfter',
-        'backOfficeHeader'
     );
 
 
@@ -113,7 +110,7 @@ class PrestaSeeder extends Module
 
     public function getContent()
     {
-        $url = $this->context->link->getAdminLink(self::CONTROLLER_INFO);
+        $url = $this->context->link->getAdminLink(self::CONTROLLER_SETTINGS);
 
         Tools::redirectAdmin($url);
     }
@@ -124,15 +121,15 @@ class PrestaSeeder extends Module
 
         $menu = array(
             array(
-                'url' => $this->context->link->getAdminLink(self::CONTROLLER_INFO),
-                'title' => $this->l('Information'),
-                'current' => self::CONTROLLER_INFO == $currentController,
-                'icon' => 'icon icon-cogs'
-            ),
-            array(
                 'url' => $this->context->link->getAdminLink(self::CONTROLLER_SETTINGS),
                 'title' => $this->l('Settings'),
                 'current' => self::CONTROLLER_SETTINGS == $currentController,
+                'icon' => 'icon icon-cogs'
+            ),
+            array(
+                'url' => $this->context->link->getAdminLink(self::CONTROLLER_INFO),
+                'title' => $this->l('Information'),
+                'current' => self::CONTROLLER_INFO == $currentController,
                 'icon' => 'icon icon-cogs'
             ),
         );
@@ -140,34 +137,6 @@ class PrestaSeeder extends Module
         $this->context->smarty->assign('menu', $menu);
 
         return $this->context->smarty->fetch(_PS_MODULE_DIR_.$this->name.'/views/templates/admin/menu.tpl');
-    }
-
-    public function hookActionObjectCategoryAddAfter($params)
-    {
-        $categoryObj = $params['object'];
-        $linkRewrites = array();
-        foreach($categoryObj->name as $key => $name) {
-            $categoryObj->link_rewrite[$key] = Tools::str2url($name.' '.(int) $categoryObj->id);
-            $categoryObj->name[$key] = $name.' '.(int) $categoryObj->id;
-        }
-
-        if (!$categoryObj->update()) {
-            return false;
-        }
-    }
-
-    public function hookActionObjectProductAddAfter($params)
-    {
-        $productObj = $params['object'];
-        $linkRewrites = array();
-        foreach($productObj->name as $key => $name) {
-            $productObj->link_rewrite[$key] = Tools::str2url($name.' '.(int) $productObj->id);
-            $productObj->name[$key] = $name.' '.(int) $productObj->id;
-        }
-
-        if (!$productObj->update()) {
-            return false;
-        }
     }
 
     public function hookActionObjectCategoryDeleteAfter($params)
@@ -210,23 +179,26 @@ class PrestaSeeder extends Module
 
         dump($productIds, $categoryIds);
 
-        $difference = count($productIds) / count($categoryIds);
-//        if (count($productIds) % count($categoryIds) != 0) {
-//            $difference++;
-//        }
+        $categoryCounter = 0;
 
-        $assigning = array_chunk($productIds, $difference);
+        foreach ($productIds as $productId) {
+            // Check if currently counter is not bigger than total array lenght. We use -1 because array starts from 0
+            if ($categoryCounter > count($categoryIds)-1) {
+                $categoryCounter = 0;
+            }
 
-        $formattingArray = array();
+            $productObj = new Product((int) $productId);
+            if(!Validate::isLoadedObject($productObj)) {
+                return;
+            }
 
-        for ($i = 0; $i <= count($categoryIds); $i++) {
-            $formattingArray[$categoryIds[$i]] = $assigning[$i];
+            $productObj->id_category_default = $categoryIds[$categoryCounter];
+            if (!$productObj->update()) {
+                continue;
+            }
+
+            $categoryCounter++;
         }
-
-        dump($assigning,$formattingArray); die();
-
-
-
     }
 
     private function createModuleDatabaseTables()
@@ -313,9 +285,8 @@ class PrestaSeeder extends Module
     private function getModuleTabs()
     {
         return array(
-            self::CONTROLLER_INFO => $this->l('Information'),
             self::CONTROLLER_SETTINGS => $this->l('Settings'),
-
+            self::CONTROLLER_INFO => $this->l('Information'),
         );
     }
 

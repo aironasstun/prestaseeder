@@ -30,6 +30,27 @@ class PrestaSeederProduct extends ObjectModel
         ),
     );
 
+    public function add($auto_date = true, $null_values = false)
+    {
+        if (parent::add($auto_date, $null_values)) {
+            $productObj = new Product($this->id_product);
+            if (!Validate::isLoadedObject($productObj)) {
+                return false;
+            }
+
+            $linkRewrites = array();
+            foreach($productObj->name as $key => $name) {
+                $productObj->link_rewrite[$key] = Tools::str2url($name.' '.(int) $productObj->id);
+                $productObj->name[$key] = $name.' '.(int) $productObj->id;
+            }
+
+            if (!$productObj->update()) {
+                return false;
+            }
+            return true;
+        }
+    }
+
     public function createProduct($amount)
     {
         $idLang = Context::getContext()->language->id;

@@ -13,6 +13,7 @@
                         <select class="form-control" name="action" id="action">
                             <option value="createProducts">Create products</option>
                             <option value="createCategories">Create categories</option>
+                            <option value="assignToCategories">Assign to categories</option>
                         </select>
                 </div>
                 <div class="form-group">

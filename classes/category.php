@@ -30,6 +30,27 @@ class PrestaSeederCategory extends ObjectModel
         ),
     );
 
+    public function add($auto_date = true, $null_values = false)
+    {
+        if (parent::add($auto_date, $null_values)) {
+            $categoryObj = new Category($this->id_category);
+            if (!Validate::isLoadedObject($categoryObj)) {
+                return false;
+            }
+
+            $linkRewrites = array();
+            foreach($categoryObj->name as $key => $name) {
+                $categoryObj->link_rewrite[$key] = Tools::str2url($name.' '.(int) $categoryObj->id);
+                $categoryObj->name[$key] = $name.' '.(int) $categoryObj->id;
+            }
+
+            if (!$categoryObj->update()) {
+                return false;
+            }
+            return true;
+        }
+    }
+
     public function createCategory($amount)
     {
         $idLang = Context::getContext()->language->id;
