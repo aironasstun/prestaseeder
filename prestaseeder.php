@@ -99,6 +99,14 @@ class PrestaSeeder extends Module
                 $productSeederObj = new PrestaSeederProduct();
                 $productSeederObj->createProduct($amount);
                 break;
+            case 'createAttributeGroups':
+                $attributeGroupSeederObj = new PrestaSeederAttributeGroup();
+                $attributeGroupSeederObj->createAttributeGroup($amount);
+                break;
+                case 'createAttributes':
+                $attributeSeederObj = new PrestaSeederAttribute();
+                $attributeSeederObj->createAttribute($amount);
+                break;
             case 'createCategories':
                 $categorySeederObj = new PrestaSeederCategory();
                 $categorySeederObj->createCategory($amount);
@@ -223,6 +231,24 @@ class PrestaSeeder extends Module
             PRIMARY KEY (`id_seeder_category`)
             ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;';
 
+        $sql[] = '
+            CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'seeder_attribute_group` (
+                `id_seeder_attribute_group` INT(11) NOT NULL AUTO_INCREMENT,
+                `id_attribute_group` INT(11) NOT NULL,
+                `date_add` DATETIME NOT NULL,
+                `date_upd` DATETIME NOT NULL,
+            PRIMARY KEY (`id_seeder_attribute_group`)
+            ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;';
+
+        $sql[] = '
+            CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'seeder_attribute` (
+                `id_seeder_attribute` INT(11) NOT NULL AUTO_INCREMENT,
+                `id_attribute` INT(11) NOT NULL,
+                `date_add` DATETIME NOT NULL,
+                `date_upd` DATETIME NOT NULL,
+            PRIMARY KEY (`id_seeder_attribute`)
+            ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;';
+
         foreach ($sql as $query) {
             if (!Db::getInstance()->execute($query)) {
                 return false;
@@ -239,7 +265,9 @@ class PrestaSeeder extends Module
         $sql[] = '
             DROP TABLE IF EXISTS
                 `'._DB_PREFIX_.'seeder_product`,
-                `'._DB_PREFIX_.'seeder_category`
+                `'._DB_PREFIX_.'seeder_category`,
+                `'._DB_PREFIX_.'seeder_attribute_group`,
+                `'._DB_PREFIX_.'seeder_attribute`
         ';
 
         foreach ($sql as $query) {

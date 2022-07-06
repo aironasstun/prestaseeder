@@ -38,7 +38,6 @@ class PrestaSeederProduct extends ObjectModel
                 return false;
             }
 
-            $linkRewrites = array();
             foreach($productObj->name as $key => $name) {
                 $productObj->link_rewrite[$key] = Tools::str2url($name.' '.(int) $productObj->id);
                 $productObj->name[$key] = $name.' '.(int) $productObj->id;

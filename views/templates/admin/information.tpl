@@ -12,6 +12,8 @@
                     <label for="action">Select an action: </label>
                         <select class="form-control" name="action" id="action">
                             <option value="createProducts">Create products</option>
+                            <option value="createAttributeGroups">Create attribute groups</option>
+                            <option value="createAttributes">Create attributes</option>
                             <option value="createCategories">Create categories</option>
                             <option value="assignToCategories">Assign to categories</option>
                         </select>

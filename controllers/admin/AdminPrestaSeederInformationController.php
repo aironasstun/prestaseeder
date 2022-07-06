@@ -24,9 +24,6 @@ class AdminPrestaSeederInformationController extends ModuleAdminController
                 'cronPath' => _PS_BASE_URL_.'/modules/prestaseeder/prestaseeder.cron.php'
             )
         );
-
-
         return $tpl->fetch();
     }
-
 }
