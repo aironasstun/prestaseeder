@@ -11,6 +11,9 @@ class PrestaSeeder extends Module
         'header',
         'actionObjectProductDeleteAfter',
         'actionObjectCategoryDeleteAfter',
+        'actionObjectAttributeDeleteAfter',
+        'actionObjectAttributeGroupDeleteAfter',
+        'actionObjectFeatureDeleteAfter',
     );
 
 
@@ -103,13 +106,17 @@ class PrestaSeeder extends Module
                 $attributeGroupSeederObj = new PrestaSeederAttributeGroup();
                 $attributeGroupSeederObj->createAttributeGroup($amount);
                 break;
-                case 'createAttributes':
+            case 'createAttributes':
                 $attributeSeederObj = new PrestaSeederAttribute();
                 $attributeSeederObj->createAttribute($amount);
                 break;
             case 'createCategories':
                 $categorySeederObj = new PrestaSeederCategory();
                 $categorySeederObj->createCategory($amount);
+                break;
+            case 'createFeatures':
+                $featureSeederObj = new PrestaSeederFeature();
+                $featureSeederObj->createFeature($amount);
                 break;
             case 'assignToCategories':
                 $this->assignToCategories();
@@ -249,6 +256,15 @@ class PrestaSeeder extends Module
             PRIMARY KEY (`id_seeder_attribute`)
             ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;';
 
+        $sql[] = '
+            CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'seeder_feature` (
+                `id_seeder_feature` INT(11) NOT NULL AUTO_INCREMENT,
+                `id_feature` INT(11) NOT NULL,
+                `date_add` DATETIME NOT NULL,
+                `date_upd` DATETIME NOT NULL,
+            PRIMARY KEY (`id_seeder_feature`)
+            ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;';
+
         foreach ($sql as $query) {
             if (!Db::getInstance()->execute($query)) {
                 return false;
@@ -267,7 +283,8 @@ class PrestaSeeder extends Module
                 `'._DB_PREFIX_.'seeder_product`,
                 `'._DB_PREFIX_.'seeder_category`,
                 `'._DB_PREFIX_.'seeder_attribute_group`,
-                `'._DB_PREFIX_.'seeder_attribute`
+                `'._DB_PREFIX_.'seeder_attribute`,
+                `'._DB_PREFIX_.'seeder_feature`
         ';
 
         foreach ($sql as $query) {

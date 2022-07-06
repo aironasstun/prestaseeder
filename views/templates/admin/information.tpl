@@ -14,6 +14,7 @@
                             <option value="createProducts">Create products</option>
                             <option value="createAttributeGroups">Create attribute groups</option>
                             <option value="createAttributes">Create attributes</option>
+                            <option value="createFeatures">Create features</option>
                             <option value="createCategories">Create categories</option>
                             <option value="assignToCategories">Assign to categories</option>
                         </select>
