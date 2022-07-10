@@ -15,8 +15,10 @@
                             <option value="createAttributeGroups">Create attribute groups</option>
                             <option value="createAttributes">Create attributes</option>
                             <option value="createFeatures">Create features</option>
+                            <option value="createFeatureValues">Create feature values</option>
                             <option value="createCategories">Create categories</option>
                             <option value="assignToCategories">Assign to categories</option>
+                            <option value="full">Full cron (use 5 as example (products are x*5))</option>
                         </select>
                 </div>
                 <div class="form-group">

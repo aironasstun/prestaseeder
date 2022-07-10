@@ -60,4 +60,21 @@ class PrestaSeederFeature extends ObjectModel
             $seederFeature->add();
         }
     }
+
+    public static function getPrimaryById($id_feature)
+    {
+        return (int) Db::getInstance()->getValue('
+        SELECT `id_seeder_feature`
+        FROM `'._DB_PREFIX_.'seeder_feature`
+        WHERE `id_feature` = '.(int) $id_feature
+        );
+    }
+
+    public static function getGeneratedFeatureIds()
+    {
+        return (array) Db::getInstance()->executeS('
+        SELECT `id_feature`
+        FROM `'._DB_PREFIX_.'seeder_feature`
+        ');
+    }
 }

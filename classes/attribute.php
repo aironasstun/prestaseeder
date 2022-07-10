@@ -77,4 +77,14 @@ class PrestaSeederAttribute extends ObjectModel
             }
         }
     }
+
+    public static function getPrimaryById($id_attribute)
+    {
+        return (int) Db::getInstance()->getValue('
+        SELECT `id_seeder_attribute`
+        FROM `'._DB_PREFIX_.'seeder_attribute`
+        WHERE `id_attribute` = '.(int) $id_attribute
+        );
+    }
+
 }

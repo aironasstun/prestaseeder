@@ -14,6 +14,7 @@ class PrestaSeeder extends Module
         'actionObjectAttributeDeleteAfter',
         'actionObjectAttributeGroupDeleteAfter',
         'actionObjectFeatureDeleteAfter',
+        'actionObjectFeatureValueDeleteAfter',
     );
 
 
@@ -95,7 +96,7 @@ class PrestaSeeder extends Module
         return true;
     }
 
-    public function processCron($action = '', $amount)
+    public function processCron($action = '', $amount = 0)
     {
         switch ($action) {
             case 'createProducts':
@@ -118,8 +119,25 @@ class PrestaSeeder extends Module
                 $featureSeederObj = new PrestaSeederFeature();
                 $featureSeederObj->createFeature($amount);
                 break;
+            case 'createFeatureValues':
+                $featureValueSeederObj = new PrestaSeederFeatureValue();
+                $featureValueSeederObj->createFeatureValue($amount);
+                break;
             case 'assignToCategories':
                 $this->assignToCategories();
+                break;
+            case 'full':
+                $start = microtime(true);
+                $this->processCron($action = 'createAttributeGroups', $amount);
+                $this->processCron($action = 'createAttributes', $amount);
+                $this->processCron($action = 'createFeatures', $amount);
+                $this->processCron($action = 'createFeatureValues', $amount);
+                $this->processCron($action = 'createProducts', $amount*5);
+                $this->processCron($action = 'createCategories', $amount);
+                $this->processCron($action = 'assignToCategories');
+                dump('Finally done.');
+                dump('Execution time: ' . number_format(microtime(true) - $start, 5, ',', '') . ' s');
+                break;
         }
     }
 
@@ -182,10 +200,62 @@ class PrestaSeeder extends Module
         $seederProductObj->delete();
     }
 
-//    public function hookBackOfficeHeader()
-//    {
-//        $this->context->controller->addJS($this->_path.'views/js/back.js');
-//    }
+    public function hookActionObjectAttributeDeleteAfter($params)
+    {
+        $attributeObj = $params['object'];
+
+        $primaryId = PrestaSeederAttribute::getPrimaryById($attributeObj->id);
+        $seederAttributeObj = new PrestaSeederAttribute($primaryId);
+
+        if (!Validate::isLoadedObject($seederAttributeObj)) {
+            return;
+        }
+
+        $seederAttributeObj->delete();
+    }
+
+    public function hookActionObjectAttributeGroupDeleteAfter($params)
+    {
+        $attributeGroupObj = $params['object'];
+
+        $primaryId = PrestaSeederAttributeGroup::getPrimaryById($attributeGroupObj->id);
+        $seederAttributeGroupObj = new PrestaSeederAttributeGroup($primaryId);
+
+        if (!Validate::isLoadedObject($seederAttributeGroupObj)) {
+            return;
+        }
+
+        $seederAttributeGroupObj->delete();
+    }
+
+    public function hookActionObjectFeatureDeleteAfter($params)
+    {
+        $featureObj = $params['object'];
+
+        $primaryId = PrestaSeederFeature::getPrimaryById($featureObj->id);
+        $seederFeatureObj = new PrestaSeederFeature($primaryId);
+
+        if (!Validate::isLoadedObject($seederFeatureObj)) {
+            return;
+        }
+
+        $seederFeatureObj->delete();
+    }
+
+    public function hookActionObjectFeatureValueDeleteAfter($params)
+    {
+        $featureValueObj = $params['object'];
+
+        $primaryId = PrestaSeederFeatureValue::getPrimaryById($featureValueObj->id);
+        $seederFeatureValueObj = new PrestaSeederFeatureValue($primaryId);
+
+        if (!Validate::isLoadedObject($seederFeatureValueObj)) {
+            return;
+        }
+
+        $seederFeatureValueObj->delete();
+    }
+
 
     private function assignToCategories()
     {
@@ -197,7 +267,7 @@ class PrestaSeeder extends Module
         $categoryCounter = 0;
 
         foreach ($productIds as $productId) {
-            // Check if currently counter is not bigger than total array lenght. We use -1 because array starts from 0
+            // Check if currently counter is not bigger than total array length. We use -1 because array starts from 0
             if ($categoryCounter > count($categoryIds)-1) {
                 $categoryCounter = 0;
             }
@@ -265,6 +335,15 @@ class PrestaSeeder extends Module
             PRIMARY KEY (`id_seeder_feature`)
             ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;';
 
+        $sql[] = '
+            CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'seeder_feature_value` (
+                `id_seeder_feature_value` INT(11) NOT NULL AUTO_INCREMENT,
+                `id_feature_value` INT(11) NOT NULL,
+                `date_add` DATETIME NOT NULL,
+                `date_upd` DATETIME NOT NULL,
+            PRIMARY KEY (`id_seeder_feature_value`)
+            ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;';
+
         foreach ($sql as $query) {
             if (!Db::getInstance()->execute($query)) {
                 return false;
@@ -284,7 +363,8 @@ class PrestaSeeder extends Module
                 `'._DB_PREFIX_.'seeder_category`,
                 `'._DB_PREFIX_.'seeder_attribute_group`,
                 `'._DB_PREFIX_.'seeder_attribute`,
-                `'._DB_PREFIX_.'seeder_feature`
+                `'._DB_PREFIX_.'seeder_feature`,
+                `'._DB_PREFIX_.'seeder_feature_value`
         ';
 
         foreach ($sql as $query) {

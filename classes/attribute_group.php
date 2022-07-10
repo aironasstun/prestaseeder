@@ -70,6 +70,15 @@ class PrestaSeederAttributeGroup extends ObjectModel
         }
     }
 
+    public static function getPrimaryById($id_attribute_group)
+    {
+        return (int) Db::getInstance()->getValue('
+        SELECT `id_seeder_attribute_group`
+        FROM `'._DB_PREFIX_.'seeder_attribute_group`
+        WHERE `id_attribute_group` = '.(int) $id_attribute_group
+        );
+    }
+
     public static function getGeneratedAttributeGroupIds()
     {
         return (array) Db::getInstance()->executeS('
