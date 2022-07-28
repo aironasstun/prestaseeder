@@ -126,6 +126,10 @@ class PrestaSeeder extends Module
             case 'assignToCategories':
                 $this->assignToCategories();
                 break;
+            case 'createCombinations':
+                $productCombinationSeederObj = new PrestaSeederProductCombination();
+                $productCombinationSeederObj->createProductCombination();
+                break;
             case 'full':
                 $start = microtime(true);
                 $this->processCron($action = 'createAttributeGroups', $amount);
@@ -300,6 +304,16 @@ class PrestaSeeder extends Module
             ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;';
 
         $sql[] = '
+            CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'seeder_product_combination` (
+                `id_seeder_product_combination` INT(11) NOT NULL AUTO_INCREMENT,
+                `id_product` INT(11) NOT NULL,
+                `id_product_attribute` INT(11) NOT NULL,
+                `date_add` DATETIME NOT NULL,
+                `date_upd` DATETIME NOT NULL,
+            PRIMARY KEY (`id_seeder_product_combination`)
+            ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;';
+
+        $sql[] = '
             CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'seeder_category` (
                 `id_seeder_category` INT(11) NOT NULL AUTO_INCREMENT,
                 `id_category` INT(11) NOT NULL,
@@ -344,6 +358,7 @@ class PrestaSeeder extends Module
             PRIMARY KEY (`id_seeder_feature_value`)
             ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;';
 
+
         foreach ($sql as $query) {
             if (!Db::getInstance()->execute($query)) {
                 return false;
@@ -360,6 +375,7 @@ class PrestaSeeder extends Module
         $sql[] = '
             DROP TABLE IF EXISTS
                 `'._DB_PREFIX_.'seeder_product`,
+                `'._DB_PREFIX_.'seeder_product_combination`,
                 `'._DB_PREFIX_.'seeder_category`,
                 `'._DB_PREFIX_.'seeder_attribute_group`,
                 `'._DB_PREFIX_.'seeder_attribute`,

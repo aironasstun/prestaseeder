@@ -83,19 +83,9 @@ class PrestaSeederProduct extends ObjectModel
             $seederProduct->id_product = $productObj->id;
             $seederProduct->add();
 
-            $productObj->addToCategories(array($homeCategory));
             StockAvailable::setQuantity($productObj->id, null, $this->getRandomQty());
 
-            $image = new Image();
-            $image->id_product = $productObj->id;
-            $image->position = Image::getHighestPosition($productObj->id) + 1;
-            $image->cover = true;
-            if (($image->validateFields(false, true)) === true && ($image->validateFieldsLang(false, true)) === true && $image->add()) {
-                $image->associateTo($shops);
-                if (!$this->addPicture($productObj->id, $image->id, $imageLink)) {
-                    $image->delete();
-                }
-            }
+            $this->addPictures($productObj->id, rand(2,3), $imageLink, $shops);
         }
     }
 

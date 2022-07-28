@@ -57,6 +57,27 @@ trait Generate
         return $reference;
     }
 
+    public function addPictures($id_product, $amount, $imageLink, $shops)
+    {
+
+        for($counter = 1; $counter <= (int) $amount; $counter++) {
+            $image = new Image();
+            $image->id_product = $id_product;
+            $image->position = Image::getHighestPosition($id_product) + 1;
+            if($counter == 1) {
+                $image->cover = true;
+            }
+
+            if (($image->validateFields(false, true)) === true && ($image->validateFieldsLang(false, true)) === true && $image->add()) {
+                $image->associateTo($shops);
+                if (!$this->addPicture($id_product, $image->id, $imageLink)) {
+                    $image->delete();
+                }
+            }
+        }
+
+    }
+
     public function addPicture($id_entity, $id_image = null, $imgPath, $type = 'products')
     {
         $tmpFile = tempnam(_PS_TMP_IMG_DIR_, 'ps_import');

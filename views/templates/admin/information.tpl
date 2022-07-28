@@ -18,6 +18,7 @@
                             <option value="createFeatureValues">Create feature values</option>
                             <option value="createCategories">Create categories</option>
                             <option value="assignToCategories">Assign to categories</option>
+                            <option value="createCombinations">Create combinations</option>
                             <option value="full">Full cron (use 5 as example (products are x*5))</option>
                         </select>
                 </div>
