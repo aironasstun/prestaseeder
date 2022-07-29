@@ -27,46 +27,53 @@ class PrestaSeederProductCombination extends ObjectModel
         ),
     );
 
-    public function createProductCombination()
+    public function createProductCombination($random = false, $limit = false, $offset = false)
     {
-            $combinationObj = new Combination();
-            $combinationObj->id_product = 102;
-            $combinationObj->reference = 'Q90367845-T';
+        $colorCombinations = PrestaSeederAttribute::getColorAttributes();
+        $regularCombinations = PrestaSeederAttribute::getRegularAttributes();
+        $products = PrestaSeederProduct::getGeneratedProductIds($random, $limit, $offset);
 
-            if (!$combinationObj->add()) {
-//                continue;
-            }
-
-            $combinationObj->setAttributes(array(181, 184));
-
-            $seederProductCombination = new PrestaSeederProductCombination();
-            $seederProductCombination->id_product = $combinationObj->id_product;
-            $seederProductCombination->id_product_attribute = $combinationObj->id;
-            $seederProductCombination->add();
-    }
-
-    public static function getPrimaryById($id_product)
-    {
-        return (int) Db::getInstance()->getValue('
-        SELECT `id_seeder_product`
-        FROM `'._DB_PREFIX_.'seeder_product`
-        WHERE `id_product` = '.(int) $id_product
-        );
-    }
-
-    public static function getGeneratedProductIds()
-    {
-        $products = (array) Db::getInstance()->executeS('
-        SELECT `id_product`
-        FROM `'._DB_PREFIX_.'seeder_product`
-        ');
-
-        $product_ids = array();
-
-        foreach($products as $product) {
-            $product_ids[] = (int) $product['id_product'];
+        if(!$colorCombinations) {
+            dump('Create attributes with colors first!');
+            return;
         }
 
-        return $product_ids;
+        if(!$regularCombinations) {
+            dump('Create attributes with first!');
+            return;
+        }
+
+        if(!$products) {
+            dump('Create products first!');
+            return;
+        }
+
+        foreach ($products as $product) {
+            $productObj = new Product($product);
+            if (!Validate::isLoadedObject($productObj)) {
+                continue;
+            }
+            foreach ($colorCombinations as $color) {
+                foreach ($regularCombinations as $attribute) {
+                    $combinationObj = new Combination();
+                    $combinationObj->id_product = $productObj->id;
+                    $combinationObj->reference = $productObj->reference;
+                    $combinationObj->price = $this->getRandomPrice();
+
+
+                    if (!$combinationObj->add()) {
+                        continue;
+                    }
+
+                    StockAvailable::setQuantity($combinationObj->id_product, $combinationObj->id, $this->getRandomQty());
+                    $combinationObj->setAttributes(array($color['id_attribute'], $attribute['id_attribute']));
+
+                    $seederProductCombination = new PrestaSeederProductCombination();
+                    $seederProductCombination->id_product = $combinationObj->id_product;
+                    $seederProductCombination->id_product_attribute = $combinationObj->id;
+                    $seederProductCombination->add();
+                }
+            }
+        }
     }
 }

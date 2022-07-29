@@ -81,10 +81,36 @@ class PrestaSeederAttribute extends ObjectModel
     public static function getPrimaryById($id_attribute)
     {
         return (int) Db::getInstance()->getValue('
-        SELECT `id_seeder_attribute`
-        FROM `'._DB_PREFIX_.'seeder_attribute`
-        WHERE `id_attribute` = '.(int) $id_attribute
+            SELECT `id_seeder_attribute`
+            FROM `'._DB_PREFIX_.'seeder_attribute`
+            WHERE `id_attribute` = '.(int) $id_attribute
         );
+    }
+
+    public static function getColorAttributes()
+    {
+        return Db::getInstance()->executeS('
+            SELECT sa.`id_seeder_attribute`, 
+               a.`id_attribute`,
+               a.`color`
+            FROM `'._DB_PREFIX_.'seeder_attribute` sa
+                LEFT JOIN `'._DB_PREFIX_.'attribute` a
+                    ON(a.`id_attribute` = sa.`id_attribute`)
+                WHERE a.color <> ""
+        ');
+    }
+
+    public static function getRegularAttributes()
+    {
+        return Db::getInstance()->executeS('
+            SELECT sa.`id_seeder_attribute`, 
+               a.`id_attribute`,
+               a.`color`
+            FROM `'._DB_PREFIX_.'seeder_attribute` sa
+                LEFT JOIN `'._DB_PREFIX_.'attribute` a
+                    ON(a.`id_attribute` = sa.`id_attribute`)
+                WHERE a.color = ""
+        ');
     }
 
 }

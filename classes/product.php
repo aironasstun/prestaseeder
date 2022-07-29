@@ -98,12 +98,25 @@ class PrestaSeederProduct extends ObjectModel
         );
     }
 
-    public static function getGeneratedProductIds()
+    public static function getGeneratedProductIds($random = false, $limit = false, $offset = false)
     {
-        $products = (array) Db::getInstance()->executeS('
-        SELECT `id_product`
-        FROM `'._DB_PREFIX_.'seeder_product`
-        ');
+
+        $sql = 'SELECT `id_product`
+        FROM `'._DB_PREFIX_.'seeder_product`';
+
+        if ($random) {
+            $sql .= 'ORDER BY RAND()';
+        }
+
+        if ($limit) {
+            $sql .= 'LIMIT '.(int) $limit;
+        }
+
+        if ($offset) {
+            $sql .= 'OFFSET '.(int) $offset;
+        }
+
+        $products = (array) Db::getInstance()->executeS($sql);
 
         $product_ids = array();
 

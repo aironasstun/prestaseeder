@@ -139,6 +139,7 @@ class PrestaSeeder extends Module
                 $this->processCron($action = 'createProducts', $amount*5);
                 $this->processCron($action = 'createCategories', $amount);
                 $this->processCron($action = 'assignToCategories');
+                $this->processCron($action = 'createCombinations');
                 dump('Finally done.');
                 dump('Execution time: ' . number_format(microtime(true) - $start, 5, ',', '') . ' s');
                 break;
