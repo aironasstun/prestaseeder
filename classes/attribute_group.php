@@ -88,4 +88,24 @@ class PrestaSeederAttributeGroup extends ObjectModel
                 ON (`ag`.`id_attribute_group` = `sag`.`id_attribute_group`)
         ');
     }
+
+    public static function getRegularAttributeGroups($random = false, $limit = false)
+    {
+        $sql = 'SELECT sag.`id_attribute_group`
+        FROM `'._DB_PREFIX_.'seeder_attribute_group` as sag
+            LEFT JOIN `'._DB_PREFIX_.'attribute_group` as ag
+                ON (ag.`id_attribute_group` = sag.`id_attribute_group`)
+        WHERE ag.`is_color_group` = false ';
+
+        if ($random) {
+            $sql .= 'ORDER BY RAND()';
+        }
+
+        if ($limit) {
+            $sql .= ' LIMIT '.(int) $limit;
+        }
+
+        return Db::getInstance()->executeS($sql);
+
+    }
 }

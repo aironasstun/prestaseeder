@@ -29,17 +29,15 @@ class PrestaSeederProductCombination extends ObjectModel
 
     public function createProductCombination($random = false, $limit = false, $offset = false)
     {
-        $colorCombinations = PrestaSeederAttribute::getColorAttributes();
-        $regularCombinations = PrestaSeederAttribute::getRegularAttributes();
+        $colorConfiguration = Configuration::get('SEEDER_COLOR_IN_COMBINATIONS');
+        $attributeGroupsConfiguration = Configuration::get('SEEDER_ATTRIBUTE_GROUP_IN_COMBINATIONS');
+        $attributesConfiguration = Configuration::get('SEEDER_ATTRIBUTES_IN_COMBINATIONS');
+
         $products = PrestaSeederProduct::getGeneratedProductIds($random, $limit, $offset);
+        $colorCombinations = PrestaSeederAttribute::getColorAttributes(true, $colorConfiguration);
 
         if(!$colorCombinations) {
             dump('Create attributes with colors first!');
-            return;
-        }
-
-        if(!$regularCombinations) {
-            dump('Create attributes with first!');
             return;
         }
 
@@ -53,25 +51,42 @@ class PrestaSeederProductCombination extends ObjectModel
             if (!Validate::isLoadedObject($productObj)) {
                 continue;
             }
+
+            $attributeGroups = PrestaSeederAttributeGroup::getRegularAttributeGroups(true, $attributeGroupsConfiguration);
+
+            $attributeGroupCollection = array();
+            foreach ($attributeGroups as $attributeGroup) {
+                $attributeGroupCollection[$attributeGroup['id_attribute_group']] = PrestaSeederAttribute::getRegularAttributesFromGroup((int) $attributeGroup['id_attribute_group'], true, $attributesConfiguration);
+            }
+
+            if(!$attributeGroupCollection) {
+                dump('Unable to get attributes from attribute groups');
+                return;
+            }
+
             foreach ($colorCombinations as $color) {
-                foreach ($regularCombinations as $attribute) {
-                    $combinationObj = new Combination();
-                    $combinationObj->id_product = $productObj->id;
-                    $combinationObj->reference = $productObj->reference;
-                    $combinationObj->price = $this->getRandomPrice();
+                foreach ($attributeGroupCollection as $attributeGroup) {
+                    foreach($attributeGroup as $attribute) {
 
 
-                    if (!$combinationObj->add()) {
-                        continue;
+                        $combinationObj = new Combination();
+                        $combinationObj->id_product = $productObj->id;
+                        $combinationObj->reference = $productObj->reference;
+                        $combinationObj->price = $this->getRandomPrice();
+
+
+                        if (!$combinationObj->add()) {
+                            continue;
+                        }
+
+                        StockAvailable::setQuantity($combinationObj->id_product, $combinationObj->id, $this->getRandomQty());
+                        $combinationObj->setAttributes(array($color['id_attribute'], $attribute['id_attribute']));
+
+                        $seederProductCombination = new PrestaSeederProductCombination();
+                        $seederProductCombination->id_product = $combinationObj->id_product;
+                        $seederProductCombination->id_product_attribute = $combinationObj->id;
+                        $seederProductCombination->add();
                     }
-
-                    StockAvailable::setQuantity($combinationObj->id_product, $combinationObj->id, $this->getRandomQty());
-                    $combinationObj->setAttributes(array($color['id_attribute'], $attribute['id_attribute']));
-
-                    $seederProductCombination = new PrestaSeederProductCombination();
-                    $seederProductCombination->id_product = $combinationObj->id_product;
-                    $seederProductCombination->id_product_attribute = $combinationObj->id;
-                    $seederProductCombination->add();
                 }
             }
         }

@@ -87,30 +87,52 @@ class PrestaSeederAttribute extends ObjectModel
         );
     }
 
-    public static function getColorAttributes()
+    public static function getColorAttributes($random = false, $limit = false)
     {
-        return Db::getInstance()->executeS('
-            SELECT sa.`id_seeder_attribute`, 
+        $sql = 'SELECT sa.`id_seeder_attribute`, 
                a.`id_attribute`,
                a.`color`
             FROM `'._DB_PREFIX_.'seeder_attribute` sa
                 LEFT JOIN `'._DB_PREFIX_.'attribute` a
                     ON(a.`id_attribute` = sa.`id_attribute`)
                 WHERE a.color <> ""
-        ');
+        ';
+
+        if ($random) {
+            $sql .= 'ORDER BY RAND()';
+        }
+
+        if ($limit) {
+            $sql .= ' LIMIT '.(int) $limit;
+        }
+
+        return Db::getInstance()->executeS($sql);
     }
 
-    public static function getRegularAttributes()
+    public static function getRegularAttributesFromGroup($attributeGroupId = false, $random = false, $limit = false)
     {
-        return Db::getInstance()->executeS('
-            SELECT sa.`id_seeder_attribute`, 
+
+        $sql = 'SELECT sa.`id_seeder_attribute`, 
                a.`id_attribute`,
                a.`color`
             FROM `'._DB_PREFIX_.'seeder_attribute` sa
                 LEFT JOIN `'._DB_PREFIX_.'attribute` a
                     ON(a.`id_attribute` = sa.`id_attribute`)
-                WHERE a.color = ""
-        ');
+                WHERE a.color = "" ';
+
+        if ($attributeGroupId) {
+            $sql .= 'AND a.id_attribute_group = "'.(int) $attributeGroupId.'"';
+        }
+
+        if ($random) {
+            $sql .= 'ORDER BY RAND()';
+        }
+
+        if ($limit) {
+            $sql .= ' LIMIT '.(int) $limit;
+        }
+
+        return Db::getInstance()->executeS($sql);
     }
 
 }

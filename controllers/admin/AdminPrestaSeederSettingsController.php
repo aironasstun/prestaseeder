@@ -37,6 +37,19 @@ class AdminPrestaSeederSettingsController extends ModuleAdminController
                         'identifier' => 'id_tax_rules_group',
                         'list' => $taxRates,
                     ),
+                    'SEEDER_COLOR_IN_COMBINATIONS' => array(
+                        'title' => $this->l('Amount of colors you want to use during combination generation'),
+                        'type' => 'text'
+                    ),
+                    'SEEDER_ATTRIBUTE_GROUP_IN_COMBINATIONS' => array(
+                        'title' => $this->l('Amount of attribute groups you want to use during combination generation'),
+                        'desc' => $this->l('Normally this should be "1"'),
+                        'type' => 'text'
+                    ),
+                    'SEEDER_ATTRIBUTES_IN_COMBINATIONS' => array(
+                        'title' => $this->l('Amount of attributes you want to use during combination generation'),
+                        'type' => 'text'
+                    ),
                 ),
                 'submit' => array('title' => $this->l('Save'),
                 ),

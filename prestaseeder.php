@@ -136,7 +136,7 @@ class PrestaSeeder extends Module
                 $this->processCron($action = 'createAttributes', $amount);
                 $this->processCron($action = 'createFeatures', $amount);
                 $this->processCron($action = 'createFeatureValues', $amount);
-                $this->processCron($action = 'createProducts', $amount*5);
+                $this->processCron($action = 'createProducts', $amount*2);
                 $this->processCron($action = 'createCategories', $amount);
                 $this->processCron($action = 'assignToCategories');
                 $this->processCron($action = 'createCombinations');
