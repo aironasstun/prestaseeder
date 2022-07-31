@@ -130,6 +130,9 @@ class PrestaSeeder extends Module
                 $productCombinationSeederObj = new PrestaSeederProductCombination();
                 $productCombinationSeederObj->createProductCombination();
                 break;
+            case 'assignFeaturesToProducts':
+                $this->assignFeaturesToProducts();
+                break;
             case 'full':
                 $start = microtime(true);
                 $this->processCron($action = 'createAttributeGroups', $amount);
@@ -139,6 +142,7 @@ class PrestaSeeder extends Module
                 $this->processCron($action = 'createProducts', $amount*2);
                 $this->processCron($action = 'createCategories', $amount);
                 $this->processCron($action = 'assignToCategories');
+                $this->processCron($action = 'assignFeaturesToProducts');
                 $this->processCron($action = 'createCombinations');
                 dump('Finally done.');
                 dump('Execution time: ' . number_format(microtime(true) - $start, 5, ',', '') . ' s');
@@ -288,6 +292,19 @@ class PrestaSeeder extends Module
             }
 
             $categoryCounter++;
+        }
+    }
+
+    private function assignFeaturesToProducts()
+    {
+        $productIds = PrestaSeederProduct::getGeneratedProductIds();
+        $featureIds = PrestaSeederFeature::getGeneratedFeatureIds();
+
+        foreach ($productIds as $productId) {
+            foreach($featureIds as $featureId) {
+                $featureValue = PrestaSeederFeatureValue::getRandomFeatureValue((int) $featureId['id_feature']);
+                Product::addFeatureProductImport($productId, $featureId['id_feature'], $featureValue);
+            }
         }
     }
 

@@ -78,4 +78,14 @@ class PrestaSeederFeatureValue extends ObjectModel
         WHERE `id_feature_value` = '.(int) $id_feature_value
         );
     }
+
+    public static function getRandomFeatureValue($id_feature)
+    {
+        return (int) Db::getInstance()->getValue('
+        SELECT `id_feature_value`
+        FROM `'._DB_PREFIX_.'feature_value`
+        WHERE `id_feature` = '.(int) $id_feature.' 
+        ORDER BY RAND()'
+        );
+    }
 }
